@@ -1,0 +1,85 @@
+import Paper from '@material-ui/core/Paper';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import React, { Component } from 'react';
+
+
+export default class App extends Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      items: [],
+    };
+  }
+
+  async componentDidMount() {
+    setInterval(async () => {
+
+      fetch("https://api.coindesk.com/v1/bpi/currentprice.json")
+        .then(res => res.json())
+        .then(
+          (result) => {
+            this.setState(prevState => ({
+              items: [result, ...prevState.items]
+            }))
+          },
+        )
+
+    }, 1000)
+
+  }
+
+  getFloatValue(key) {
+    return parseFloat(key.replace(/,/g, ""));
+  }
+  
+
+  getCounter = (currentItem, previousItem) => {
+    if (!previousItem) {
+      return 'flat'
+    }
+    var  key1=this.getFloatValue(currentItem.bpi.USD.rate)
+    var key2=this.getFloatValue(previousItem.bpi.USD.rate)
+    if (key1 === key2) {
+      return 'flat'
+    }
+    if (key1 > key2 ){
+      return 'arrow_upward';
+    }
+    return 'arrow_downward';
+  }
+
+  render() {
+    return (
+      <Paper >
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell><b>Bitcoin Price</b></TableCell>
+              <TableCell><b>Increase/Decrease</b></TableCell>
+
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {this.state.items.map((item, index) => (
+              <TableRow  >
+                <TableCell>
+                  USD :{item.bpi.USD.rate}<br></br>
+                  EUR : {item.bpi.EUR.rate}<br></br>
+                  GBP: {item.bpi.GBP.rate}</TableCell>
+                <TableCell >
+                  <i className="material-icons"> {this.getCounter(item, this.state.items[index + 1])}</i>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Paper>
+
+    )
+  }
+}
